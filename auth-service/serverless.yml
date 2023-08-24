@@ -1,0 +1,132 @@
+org: ohamza762
+app: mailhub
+service:
+  name: auth-service
+
+plugins:
+  - serverless-bundle
+  - serverless-pseudo-parameters
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  memorySize: 256
+  stage: ${opt:stage, 'dev'}
+  region: eu-west-1
+  environment:
+    USERS_TABLE_NAME: ${self:custom.UsersTable.name}
+    ACCOUNT_DETAILS_TABLE_NAME: ${self:custom.AccountDetailsTable.name}
+    LOGOS_BUCKET_NAME: ${self:custom.LogosBucket.name}
+    JWT_SECRET: ${param:JWT_SECRET}
+  iamRoleStatements:
+    - ${file(iam/UsersTableIAM.yml):UsersTableIAM}
+    - ${file(iam/AccountDetailsTableIAM.yml):AccountDetailsTableIAM}
+    - ${file(iam/LogosBucketIAM.yml):LogosBucketIAM}
+    - ${file(iam/SESIAM.yml):SESIAM}
+
+resources:
+  Resources:
+    UsersTable: ${file(resources/UsersTable.yml):UsersTable}
+    AccountDetailsTable: ${file(resources/AccountDetailsTable.yml):AccountDetailsTable}
+    LogosBucket: ${file(resources/LogosBucket.yml):LogosBucket        }
+    LogosBucketPolicy: ${file(resources/LogosBucket.yml):LogosBucketPolicy}
+    # GatewayResponse:
+    #   Type: 'AWS::ApiGateway::GatewayResponse'
+    #   Properties:
+    #     ResponseParameters:
+    #       gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+    #       gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+    #     ResponseType: EXPIRED_TOKEN
+    #     RestApiId:
+    #       Ref: 'ApiGatewayRestApi'
+    #     StatusCode: '401'
+    # AuthFailureGatewayResponse:
+    #   Type: 'AWS::ApiGateway::GatewayResponse'
+    #   Properties:
+    #     ResponseParameters:
+    #       gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+    #       gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+    #     ResponseType: UNAUTHORIZED
+    #     RestApiId:
+    #       Ref: 'ApiGatewayRestApi'
+    #     StatusCode: '401'
+
+functions:
+  validate:
+    handler: src/handlers/validate.handler
+
+  createUser:
+    handler: src/handlers/createUser.handler
+    events:
+      - http:
+          method: POST
+          path: /createUser
+          cors: true
+
+  loginUser:
+    handler: src/handlers/loginUser.handler
+    events:
+      - http:
+          method: POST
+          path: /loginUser
+          cors: true
+
+  checkAccount:
+    handler: src/handlers/checkAccount.handler
+    events:
+      - http:
+          method: GET
+          path: /checkAccount
+          cors: true
+          authorizer:
+            name: validate
+            identitySource: method.request.header.Authorization
+
+  setupAccount:
+    handler: src/handlers/setupAccount.handler
+    events:
+      - http:
+          method: POST
+          path: /setupAccount
+          cors: true
+          authorizer:
+            name: validate
+            identitySource: method.request.header.Authorization
+
+  forgotPassword:
+    handler: src/handlers/forgotPassword.handler
+    events:
+      - http:
+          method: POST
+          path: /forgotPassword
+          cors: true
+
+  resetPassword:
+    handler: src/handlers/resetPassword.handler
+    events:
+      - http:
+          method: POST
+          path: /resetPassword
+          cors: true
+
+  updatePassword:
+    handler: src/handlers/updatePassword.handler
+    events:
+      - http:
+          method: POST
+          path: /updatePassword
+          cors: true
+          authorizer:
+            name: validate
+            identitySource: method.request.header.Authorization
+
+custom:
+  # authorizer: arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:auth-service1-${self:provider.stage}-auth
+  UsersTable:
+    name: !Ref UsersTable
+    arn: !GetAtt UsersTable.Arn
+  AccountDetailsTable:
+    name: !Ref AccountDetailsTable
+    arn: !GetAtt AccountDetailsTable.Arn
+  LogosBucket:
+    name: logos-bucket-mailhub-${self:provider.stage}

@@ -1,0 +1,7 @@
+BookingsBucketIAM:
+  Effect: Allow
+  Action:
+    - s3:GetObject
+    - s3:PutObject
+    - s3:PutObjectTagging
+  Resource: arn:aws:s3:::${self:custom.BookingsBucket.name}/*

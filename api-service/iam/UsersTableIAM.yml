@@ -1,0 +1,13 @@
+UsersTableIAM:
+  Effect: Allow
+  Action:
+    - dynamodb:PutItem
+    - dynamodb:Query
+    # - dynamodb:Scan
+    # - dynamodb:GetItem
+    # - dynamodb:UpdateItem
+
+  Resource:
+    - ${self:custom.UsersTable.arn}
+    - !Join ['/', ['${self:custom.UsersTable.arn}', 'index', 'username']]
+    - !Join ['/', ['${self:custom.UsersTable.arn}', 'index', 'email']]

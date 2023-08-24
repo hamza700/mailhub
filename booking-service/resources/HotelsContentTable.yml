@@ -1,0 +1,30 @@
+HotelsContentTable:
+  Type: AWS::DynamoDB::Table
+  Properties:
+    TableName: HotelsContentTable-${self:provider.stage}
+    AttributeDefinitions:
+      - AttributeName: code
+        AttributeType: N
+      - AttributeName: name
+        AttributeType: S
+    KeySchema:
+      - AttributeName: name
+        KeyType: HASH
+      - AttributeName: code
+        KeyType: RANGE
+    ProvisionedThroughput:
+      ReadCapacityUnits: 5
+      WriteCapacityUnits: 5
+    # GlobalSecondaryIndexes:
+    #   - IndexName: destinationCode
+    #     KeySchema:
+    #       - AttributeName: destinationCode
+    #         KeyType: HASH
+    #     ProvisionedThroughput:
+    #       ReadCapacityUnits: 5
+    #       WriteCapacityUnits: 5
+    #     Projection:
+    #       ProjectionType: ALL
+
+    StreamSpecification:
+      StreamViewType: NEW_IMAGE

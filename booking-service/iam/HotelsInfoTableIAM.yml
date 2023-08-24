@@ -1,0 +1,13 @@
+HotelsInfoTableIAM:
+  Effect: Allow
+  Action:
+    - dynamodb:PutItem
+    - dynamodb:Query
+    - dynamodb:Scan
+    - dynamodb:GetItem
+    - dynamodb:UpdateItem
+    - dynamodb:BatchWriteItem
+
+  Resource:
+    - ${self:custom.HotelsInfoTable.arn}
+    # - !Join ['/', ['${self:custom.UsersTable.arn}', 'index', 'accessCode']]

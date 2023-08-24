@@ -1,0 +1,19 @@
+HotelsContentBucket:
+  Type: AWS::S3::Bucket
+  Properties:
+    BucketName: ${self:custom.HotelsContentBucket.name}
+
+HotelsContentBucketPolicy:
+  Type: AWS::S3::BucketPolicy
+  Properties:
+    Bucket: !Ref HotelsContentBucket
+    PolicyDocument:
+      Statement:
+        - Sid: PublicRead
+          Effect: Allow
+          Principal: '*'
+          Action:
+            - s3:GetObject
+            - s3:PutObject
+            - s3:PutObjectTagging
+          Resource: arn:aws:s3:::${self:custom.HotelsContentBucket.name}/*

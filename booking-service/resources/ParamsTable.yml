@@ -1,0 +1,16 @@
+ParamsTable:
+  Type: AWS::DynamoDB::Table
+  Properties:
+    TableName: ParamsTable-${self:provider.stage}
+    AttributeDefinitions:
+      - AttributeName: code
+        AttributeType: S
+    KeySchema:
+      - AttributeName: code
+        KeyType: HASH
+    ProvisionedThroughput:
+      ReadCapacityUnits: 1
+      WriteCapacityUnits: 1
+
+    StreamSpecification:
+      StreamViewType: NEW_IMAGE

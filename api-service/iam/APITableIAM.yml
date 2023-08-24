@@ -1,0 +1,12 @@
+APITableIAM:
+  Effect: Allow
+  Action:
+    - dynamodb:PutItem
+    # - dynamodb:Query
+    # - dynamodb:Scan
+    # - dynamodb:GetItem
+    # - dynamodb:UpdateItem
+
+  Resource:
+    - ${self:custom.APITable.arn}
+    - !Join ['/', ['${self:custom.APITable.arn}', 'index', 'supplierId']]

@@ -1,0 +1,17 @@
+BookingsTableIAM:
+  Effect: Allow
+  Action:
+    - dynamodb:PutItem
+    - dynamodb:BatchWriteItem
+    - dynamodb:DescribeStream
+    - dynamodb:GetRecords
+    - dynamodb:GetShardIterator
+    - dynamodb:ListStreams
+    - dynamodb:Scan
+    - dynamodb:GetItem
+    - dynamodb:UpdateItem
+    - dynamodb:Query
+  Resource:
+    - ${self:custom.BookingsTable.arn}
+    - !Join ['/', ['${self:custom.BookingsTable.arn}', 'index', 'accessCode']]
+    - !Join ['/', ['${self:custom.BookingsTable.arn}', 'index', 'reference']]

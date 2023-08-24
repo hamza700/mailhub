@@ -1,0 +1,39 @@
+BookingsTable:
+  Type: AWS::DynamoDB::Table
+  Properties:
+    TableName: BookingsTable-${self:provider.stage}
+    AttributeDefinitions:
+      - AttributeName: bookingId
+        AttributeType: S
+      - AttributeName: accessCode
+        AttributeType: S
+      - AttributeName: reference
+        AttributeType: S
+    KeySchema:
+      - AttributeName: bookingId
+        KeyType: HASH
+    ProvisionedThroughput:
+      ReadCapacityUnits: 5
+      WriteCapacityUnits: 5
+    GlobalSecondaryIndexes:
+      - IndexName: accessCode
+        KeySchema:
+          - AttributeName: accessCode
+            KeyType: HASH
+        Projection:
+          ProjectionType: ALL
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+      - IndexName: reference
+        KeySchema:
+          - AttributeName: reference
+            KeyType: HASH
+        Projection:
+          ProjectionType: ALL
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+    StreamSpecification:
+      StreamViewType: NEW_IMAGE

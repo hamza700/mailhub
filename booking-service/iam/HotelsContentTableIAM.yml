@@ -1,0 +1,13 @@
+HotelsContentTableIAM:
+  Effect: Allow
+  Action:
+    - dynamodb:PutItem
+    - dynamodb:Query
+    - dynamodb:Scan
+    - dynamodb:GetItem
+    - dynamodb:UpdateItem
+    - dynamodb:BatchWriteItem
+
+  Resource:
+    - ${self:custom.HotelsContentTable.arn}
+    - !Join ['/', ['${self:custom.HotelsContentTable.arn}', 'index', 'destinationCode']]

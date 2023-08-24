@@ -1,0 +1,19 @@
+ChecklistTableIAM:
+  Effect: Allow
+  Action:
+    - dynamodb:PutItem
+    - dynamodb:BatchWriteItem
+    - dynamodb:DescribeStream
+    - dynamodb:GetRecords
+    - dynamodb:GetShardIterator
+    - dynamodb:ListStreams
+    # - dynamodb:Scan
+    # - dynamodb:GetItem
+    - dynamodb:UpdateItem
+    - dynamodb:Query
+  Resource:
+    - ${self:custom.ChecklistTable.arn}
+    - !Join [
+        '/',
+        ['${self:custom.ChecklistTable.arn}', 'index', 'passportNumber'],
+      ]

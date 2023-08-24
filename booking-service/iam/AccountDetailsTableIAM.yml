@@ -1,0 +1,12 @@
+AccountDetailsTableIAM:
+  Effect: Allow
+  Action:
+    - dynamodb:PutItem
+    - dynamodb:Query
+    # - dynamodb:Scan
+    # - dynamodb:GetItem
+    # - dynamodb:UpdateItem
+
+  Resource:
+    - ${self:custom.AccountDetailsTable.arn}
+    - !Join ['/', ['${self:custom.UsersTable.arn}', 'index', 'accessCode']]

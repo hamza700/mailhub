@@ -1,0 +1,7 @@
+LambdaIAM:
+  Effect: Allow
+  Action:
+    - lambda:InvokeFunction
+  Resource: 
+    - arn:aws:lambda:eu-west-1:091991945211:function:booking-service-dev-getBookingDetails:3
+    - arn:aws:lambda:eu-west-1:091991945211:function:booking-service-dev-getMatchingHotels:27

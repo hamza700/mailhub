@@ -1,0 +1,44 @@
+org: ohamza762
+app: mailhub
+service:
+  name: api-service
+
+plugins:
+  - serverless-bundle
+  - serverless-pseudo-parameters
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  memorySize: 256
+  stage: ${opt:stage, 'dev'}
+  region: eu-west-1
+  environment:
+    USERS_TABLE_NAME: ${self:custom.UsersTable.name}
+    API_TABLE_NAME: ${self:custom.APITable.name}
+    JWT_SECRET: ${param:JWT_SECRET}
+  iamRoleStatements:
+    - ${file(iam/UsersTableIAM.yml):UsersTableIAM}
+    - ${file(iam/APITableIAM.yml):APITableIAM}
+
+resources:
+  Resources:
+    APITable: ${file(resources/APITable.yml):APITable}
+
+functions:
+  addAPI:
+    handler: src/handlers/addAPI.handler
+    events:
+      - http:
+          method: POST
+          path: /addAPI
+          cors: true
+
+custom:
+  # authorizer: arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:auth-service1-${self:provider.stage}-auth
+  UsersTable:
+    name: UsersTable-dev
+    arn: arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/UsersTable-dev
+  APITable:
+    name: !Ref APITable
+    arn: !GetAtt APITable.Arn

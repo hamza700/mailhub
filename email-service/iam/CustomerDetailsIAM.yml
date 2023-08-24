@@ -1,0 +1,6 @@
+CustomerDetailsIAM:
+  Effect: Allow
+  Action:
+    - sns:Publish
+    - sns:Subscribe
+  Resource: arn:aws:sns:eu-west-1:091991945211:customerDetails*

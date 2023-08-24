@@ -1,0 +1,13 @@
+ParamsTableIAM:
+  Effect: Allow
+  Action:
+    - dynamodb:PutItem
+    - dynamodb:Query
+    - dynamodb:Scan
+    # - dynamodb:GetItem
+    # - dynamodb:UpdateItem
+
+  Resource:
+    - ${self:custom.ParamsTable.arn}
+    # - !Join ['/', ['${self:custom.ParamsTable.arn}', 'index', 'username']]
+    # - !Join ['/', ['${self:custom.ParamsTable.arn}', 'index', 'email']]

@@ -1,0 +1,32 @@
+UsersTable:
+  Type: AWS::DynamoDB::Table
+  Properties:
+    TableName: UsersTable-${self:provider.stage}
+    BillingMode: PAY_PER_REQUEST
+    AttributeDefinitions:
+      - AttributeName: id
+        AttributeType: S
+      - AttributeName: username
+        AttributeType: S
+      - AttributeName: email
+        AttributeType: S
+    KeySchema:
+      - AttributeName: id
+        KeyType: HASH
+    GlobalSecondaryIndexes:
+      - IndexName: username
+        KeySchema:
+          - AttributeName: username
+            KeyType: HASH
+          # - AttributeName: password
+          #   KeyType: HASH
+        Projection:
+          ProjectionType: ALL
+      - IndexName: email
+        KeySchema:
+          - AttributeName: email
+            KeyType: HASH
+          # - AttributeName: password
+          #   KeyType: HASH
+        Projection:
+          ProjectionType: ALL

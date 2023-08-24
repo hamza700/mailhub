@@ -1,0 +1,22 @@
+ChecklistTable:
+  Type: AWS::DynamoDB::Table
+  Properties:
+    TableName: ChecklistTable-${self:provider.stage}
+    BillingMode: PAY_PER_REQUEST
+    AttributeDefinitions:
+      - AttributeName: id
+        AttributeType: S
+      - AttributeName: passportNumber
+        AttributeType: S
+    KeySchema:
+      - AttributeName: id
+        KeyType: HASH
+    GlobalSecondaryIndexes:
+      - IndexName: passportNumber
+        KeySchema:
+          - AttributeName: passportNumber
+            KeyType: HASH
+        Projection:
+          ProjectionType: ALL
+    StreamSpecification:
+      StreamViewType: NEW_IMAGE

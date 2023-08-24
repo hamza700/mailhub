@@ -1,0 +1,22 @@
+APITable:
+  Type: AWS::DynamoDB::Table
+  Properties:
+    TableName: APITable-${self:provider.stage}
+    BillingMode: PAY_PER_REQUEST
+    AttributeDefinitions:
+      - AttributeName: id
+        AttributeType: S
+      - AttributeName: supplierId
+        AttributeType: S
+    KeySchema:
+      - AttributeName: id
+        KeyType: HASH
+    GlobalSecondaryIndexes:
+      - IndexName: supplierId
+        KeySchema:
+          - AttributeName: supplierId
+            KeyType: HASH
+          # - AttributeName: password
+          #   KeyType: HASH
+        Projection:
+          ProjectionType: ALL

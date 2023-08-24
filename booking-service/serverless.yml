@@ -1,0 +1,243 @@
+org: ohamza762
+app: mailhub
+service:
+  name: booking-service
+
+plugins:
+  - serverless-bundle
+  - serverless-pseudo-parameters
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  memorySize: 256
+  stage: ${opt:stage, 'dev'}
+  region: eu-west-1
+  environment:
+    USERS_TABLE_NAME: ${self:custom.UsersTable.name}
+    BOOKINGS_TABLE_NAME: ${self:custom.BookingsTable.name}
+    ACCOUNT_DETAILS_TABLE_NAME: ${self:custom.AccountDetailsTable.name}
+    CHECKLIST_TABLE_NAME: ${self:custom.ChecklistTable.name}
+    HOTELS_CONTENT_TABLE_NAME: ${self:custom.HotelsContentTable.name}
+    HOTELS_INFO_TABLE_NAME: ${self:custom.HotelsInfoTable.name}
+    PARAMS_TABLE_NAME: ${self:custom.ParamsTable.name}
+    BOOKINGS_BUCKET_NAME: ${self:custom.BookingsBucket.name}
+    OFFERS_BUCKET_NAME: ${self:custom.OffersBucket.name}
+    HOTELS_CONTENT_BUCKET_NAME: ${self:custom.HotelsContentBucket.name}
+    JWT_SECRET: ${param:JWT_SECRET}
+    AMADEUS_CLIENT_ID: 6IL1jcD0KiRyfJGXAIBzWOeMsenrlnqn
+    AMADEUS_CLIENT_SECRET: CY2FPYwYP5Yqooco
+    APITUDE_APIKEY: 3c3b6b33157d6feac263954bf6292814
+    APITUDE_SECRET: 40345b447d
+
+  iamRoleStatements:
+    - ${file(iam/UsersTableIAM.yml):UsersTableIAM}
+    - ${file(iam/AccountDetailsTableIAM.yml):AccountDetailsTableIAM}
+    - ${file(iam/BookingsTableIAM.yml):BookingsTableIAM}
+    - ${file(iam/ChecklistTableIAM.yml):ChecklistTableIAM}
+    - ${file(iam/HotelsContentTableIAM.yml):HotelsContentTableIAM}
+    - ${file(iam/HotelsInfoTableIAM.yml):HotelsInfoTableIAM}
+    - ${file(iam/ParamsTableIAM.yml):ParamsTableIAM}
+    - ${file(iam/BookingsBucketIAM.yml):BookingsBucketIAM}
+    - ${file(iam/OffersBucketIAM.yml):OffersBucketIAM}
+    - ${file(iam/HotelsContentBucketIAM.yml):HotelsContentBucketIAM}
+    - ${file(iam/LambdaIAM.yml):LambdaIAM}
+    - ${file(iam/BookingDetailsIAM.yml):BookingDetailsIAM}
+    - ${file(iam/SESIAM.yml):SESIAM}
+
+resources:
+  Resources:
+    BookingsTable: ${file(resources/BookingsTable.yml):BookingsTable}
+    ChecklistTable: ${file(resources/ChecklistTable.yml):ChecklistTable}
+    HotelsContentTable: ${file(resources/HotelsContentTable.yml):HotelsContentTable}
+    HotelsInfoTable: ${file(resources/HotelsInfoTable.yml):HotelsInfoTable}
+    ParamsTable: ${file(resources/ParamsTable.yml):ParamsTable}
+    BookingsBucket: ${file(resources/BookingsBucket.yml):BookingsBucket}
+    BookingsBucketPolicy: ${file(resources/BookingsBucket.yml):BookingsBucketPolicy}
+    OffersBucket: ${file(resources/OffersBucket.yml):OffersBucket}
+    OffersBucketPolicy: ${file(resources/OffersBucket.yml):OffersBucketPolicy}
+    HotelsContentBucket: ${file(resources/HotelsContentBucket.yml):HotelsContentBucket}
+    HotelsContentBucketPolicy: ${file(resources/HotelsContentBucket.yml):HotelsContentBucketPolicy}
+
+functions:
+  searchAPI:
+    handler: src/handlers/searchAPI.handler
+    events:
+      - http:
+          method: POST
+          path: /searchAPI
+          cors: true
+    timeout: 300
+
+  pusherAPI:
+    handler: src/handlers/pusherAPI.handler
+    events:
+      - http:
+          method: POST
+          path: /pusherAPI
+          cors: true
+    timeout: 300
+
+  ratesAPI:
+    handler: src/handlers/ratesAPI.handler
+    events:
+      - http:
+          method: POST
+          path: /ratesAPI
+          cors: true
+    timeout: 300
+
+  bookingAPI:
+    handler: src/handlers/bookingAPI.handler
+    events:
+      - http:
+          method: POST
+          path: /bookingAPI
+          cors: true
+          authorizer: ${self:custom.authorizer}
+
+  paymentAPI:
+    handler: src/handlers/paymentAPI.handler
+    events:
+      - http:
+          method: POST
+          path: /paymentAPI
+          cors: true
+
+  userProfileAPI:
+    handler: src/handlers/userProfileAPI.handler
+    events:
+      - http:
+          method: POST
+          path: /userProfileAPI
+          cors: true
+
+  dynamodbToCSV:
+    handler: src/handlers/dynamodbToCSV.handler
+    timeout: 900
+
+  addBooking:
+    handler: src/handlers/addBooking.handler
+    events:
+      - http:
+          method: POST
+          path: /addBooking
+          cors: true
+          authorizer: ${self:custom.authorizer}
+
+  viewBookings:
+    handler: src/handlers/viewBookings.handler
+    events:
+      - http:
+          method: GET
+          path: /viewBookings
+          cors: true
+          authorizer: ${self:custom.authorizer}
+
+  uploadJSONToS3:
+    handler: src/handlers/uploadJSONToS3.handler
+    events:
+      - http:
+          method: POST
+          path: /upload
+          cors: true
+          authorizer: ${self:custom.authorizer}
+
+  uploadHotelsContent:
+    handler: src/handlers/uploadHotelsContent.handler
+    events:
+      - schedule: cron(0/10 * ? * TUE-WED *)
+    timeout: 900
+
+  uploadHotelsInfo:
+    handler: src/handlers/uploadHotelsInfo.handler
+    events:
+      - http:
+          method: GET
+          path: /uploadHotelsinfo
+    timeout: 900
+
+  getBookingDetails:
+    handler: src/handlers/getBookingDetails.handler
+    events:
+      - stream:
+          arn: arn:aws:dynamodb:eu-west-1:091991945211:table/BookingsTable-dev/stream/2021-08-05T15:51:47.279
+          maximumRetryAttempts: 0
+
+  getMatchingHotels:
+    handler: src/handlers/getMatchingHotels.handler
+    events:
+      - sns:
+          topicName: bookingDetails
+    timeout: 300
+
+  uploadBooking:
+    handler: src/handlers/uploadBooking.handler
+    events:
+      - sns: ${self:custom.BookingsSNS.arn}
+    timeout: 300
+
+  upload:
+    handler: src/handlers/upload.handler
+    events:
+      - s3:
+          bucket: ${self:custom.BookingsBucket.name}
+          event: s3:ObjectCreated:*
+          rules:
+            - suffix: .json
+          existing: true
+
+  emailReference:
+    handler: src/handlers/emailReference.handler
+    events:
+      - stream:
+          arn: arn:aws:dynamodb:eu-west-1:091991945211:table/BookingsTable-dev/stream/2021-08-05T15:51:47.279
+          maximumRetryAttempts: 0
+
+  addCustomerEmail:
+    handler: src/handlers/addCustomerEmail.handler
+    events:
+      - http:
+          method: POST
+          path: /addCustomerEmail
+          cors: true
+    timeout: 300
+
+  getInfoFromDB:
+    handler: src/handlers/getInfoFromDB.handler
+    # events:
+    #   - stream:
+    #       arn: arn:aws:dynamodb:eu-west-1:091991945211:table/BookingsTable-dev/stream/2020-09-30T18:16:23.792
+    #       maximumRetryAttempts: 0
+
+custom:
+  authorizer: arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:auth-service-${self:provider.stage}-validate
+  UsersTable:
+    name: UsersTable-dev
+    arn: arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/UsersTable-dev
+  AccountDetailsTable:
+    name: AccountDetailsTable-dev
+    arn: arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/AccountDetailsTable-dev
+  BookingsTable:
+    name: !Ref BookingsTable
+    arn: !GetAtt BookingsTable.Arn
+  ChecklistTable:
+    name: !Ref ChecklistTable
+    arn: !GetAtt ChecklistTable.Arn
+  HotelsContentTable:
+    name: !Ref HotelsContentTable
+    arn: !GetAtt HotelsContentTable.Arn
+  HotelsInfoTable:
+    name: !Ref HotelsInfoTable
+    arn: !GetAtt HotelsInfoTable.Arn
+  ParamsTable:
+    name: !Ref ParamsTable
+    arn: !GetAtt ParamsTable.Arn
+  BookingsBucket:
+    name: bookings-bucket-mailhub-${self:provider.stage}
+  OffersBucket:
+    name: offers-bucket-mailhub-${self:provider.stage}
+  HotelsContentBucket:
+    name: hotels-content-bucket-mailhub-${self:provider.stage}
+  BookingsSNS:
+    arn: arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:Bookings-SNS

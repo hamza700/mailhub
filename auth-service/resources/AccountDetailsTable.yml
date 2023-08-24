@@ -1,0 +1,24 @@
+AccountDetailsTable:
+  Type: AWS::DynamoDB::Table
+  Properties:
+    TableName: AccountDetailsTable-${self:provider.stage}
+    BillingMode: PAY_PER_REQUEST
+    AttributeDefinitions:
+      - AttributeName: id
+        AttributeType: S
+      - AttributeName: accessCode
+        AttributeType: S
+      # - AttributeName: password
+      #   AttributeType: S
+    KeySchema:
+      - AttributeName: id
+        KeyType: HASH
+    GlobalSecondaryIndexes:
+      - IndexName: accessCode
+        KeySchema:
+          - AttributeName: accessCode
+            KeyType: HASH
+          # - AttributeName: password
+          #   KeyType: HASH
+        Projection:
+          ProjectionType: ALL

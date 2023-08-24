@@ -1,0 +1,34 @@
+BookingsBucket:
+  Type: AWS::S3::Bucket
+  Properties:
+    BucketName: ${self:custom.BookingsBucket.name}
+
+BookingsBucketPolicy:
+  Type: AWS::S3::BucketPolicy
+  Properties:
+    Bucket: !Ref BookingsBucket
+    PolicyDocument:
+      Statement:
+        - Sid: PublicRead
+          Effect: Allow
+          Principal: '*'
+          Action:
+            - s3:GetObject
+            - s3:PutObject
+            - s3:PutObjectTagging
+          Resource: arn:aws:s3:::${self:custom.BookingsBucket.name}/*
+        # - Sid: SourceIP
+        #   Effect: Deny
+        #   Principal: '*'
+        #   Action:
+        #     - s3:*
+        #   Resource: arn:aws:s3:::${self:custom.BookingsBucket.name}/*
+        #   Condition:
+        #     NotIpAddress:
+        #       aws:SourceIp:
+        #         - '192.168.0.147'
+        #         - '192.168.0.142'
+        #         - '82.13.220.155'
+        #         - '193.39.255.52'
+        #         - '122.176.74.110'
+

@@ -1,0 +1,76 @@
+service:
+  name: email-service
+
+plugins:
+  - serverless-bundle
+  - serverless-pseudo-parameters
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  memorySize: 256
+  stage: ${opt:stage, 'dev'}
+  region: eu-west-1
+  environment:
+    BOOKINGS_TABLE_NAME: ${self:custom.BookingsTable.name}
+    WELCOME_EMAIL_TEMPLATE: ${self:custom.WelcomeEmailTemplate.name}
+    HOTEL_OFFERS_TEMPLATE: ${self:custom.HotelOffersTemplate.name}
+    HOTELS_CONTENT_TABLE_NAME: ${self:custom.HotelsContentTable.name}
+    HOTELS_INFO_TABLE_NAME: ${self:custom.HotelsInfoTable.name}
+    AMADEUS_CLIENT_ID: 6IL1jcD0KiRyfJGXAIBzWOeMsenrlnqn
+    AMADEUS_CLIENT_SECRET: CY2FPYwYP5Yqooco
+    APITUDE_APIKEY: 3c3b6b33157d6feac263954bf6292814
+    APITUDE_SECRET: 40345b447d
+
+  iamRoleStatements:
+    - ${file(iam/SESIAM.yml):SESIAM}
+    - ${file(iam/CustomerDetailsIAM.yml):CustomerDetailsIAM}
+    - ${file(iam/HotelsInfoTableIAM.yml):HotelsInfoTableIAM}
+
+resources:
+  Resources:
+    WelcomeEmailTemplate: ${file(resources/WelcomeEmailTemplate.yml):WelcomeEmailTemplate}
+    HotelOffersTemplate: ${file(resources/HotelOffersTemplate.yml):HotelOffersTemplate}
+
+functions:
+  startCampaign:
+    handler: src/handlers/startCampaign.handler
+    events:
+      - sns:
+          topicName: customerDetails
+    # events:
+    #   - stream:
+    #       arn: ${self:custom.BookingsTable.arn}/stream/2021-08-05T15:51:47.279
+    #       maximumRetryAttempts: 0
+
+  sendHotelOffers:
+    handler: src/handlers/sendHotelOffers.handler
+    events:
+      - sns:
+          topicName: customerDetails
+    # events:
+    #   - stream:
+    #       arn: ${self:custom.BookingsTable.arn}/stream/2021-08-05T15:51:47.279
+    #       maximumRetryAttempts: 0
+
+  getBookingDetails:
+    handler: src/handlers/getBookingDetails.handler
+    events:
+      - stream:
+          arn: ${self:custom.BookingsTable.arn}/stream/2021-08-05T15:51:47.279
+          maximumRetryAttempts: 0
+
+custom:
+  BookingsTable:
+    name: BookingsTable-dev
+    arn: arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/BookingsTable-dev
+  WelcomeEmailTemplate:
+    name: !Ref WelcomeEmailTemplate
+  HotelOffersTemplate:
+    name: !Ref HotelOffersTemplate
+  HotelsContentTable:
+    name: HotelsContentTable-dev
+    arn: arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/HotelsContentTable-dev
+  HotelsInfoTable:
+    name: HotelsInfoTable-dev
+    arn: arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/HotelsInfoTable-dev
